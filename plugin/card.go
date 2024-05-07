@@ -12,7 +12,7 @@ import (
 func (args Args) writeCard(data Card) error {
 	result, _ := json.Marshal(data)
 	card := drone.CardInput{
-		Schema: "https://drone.github.io/drone-jira/card.json",
+		Schema: "https://noenv.com/drone-jira/card.json",
 		Data:   result,
 	}
 	writeCard(args.CardFilePath, &card)

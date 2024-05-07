@@ -21,7 +21,7 @@ import (
 
 const (
 	// DefaultConnectHostname is the default connect hostname
-	DefaultConnectHostname = "https://jira-ci.harness.io"
+	DefaultConnectHostname = "https://jira.noenv.com"
 )
 
 // Args provides plugin execution arguments.

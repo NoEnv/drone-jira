@@ -1,26 +1,32 @@
-# drone-jira
+[![Docker Pulls](https://badgen.net/docker/pulls/noenv/jira)](https://hub.docker.com/r/noenv/jira)
+[![Quay.io Enabled](https://badgen.net/badge/quay%20pulls/enabled/green)](https://quay.io/repository/noenv/jira)
+[![build](https://github.com/NoEnv/drone-jira/actions/workflows/build.yml/badge.svg)](https://github.com/NoEnv/drone-jira/actions/workflows/build.yml)
 
-A plugin to attach build and deployment details to a Jira issue. For information on how to use the plugin with drone there is a video [here](https://youtu.be/YIKbLeY1-gI)
+## drone-jira
 
-## Building
+A plugin to attach build and deployment details to a Jira issue.
+
+#### Build
 
 Build the plugin binary:
 
-```text
-scripts/build.sh
+```console
+export CGO_ENABLED=0
+
+go build -o release/drone-jira
 ```
 
-Build the plugin image:
+#### Docker
 
-```text
-docker build -t plugins/jira -f docker/Dockerfile .
+```console
+docker build -t noenv/jira -f Dockerfile .
 ```
 
-## Testing
+#### Usage
 
 Execute the plugin from your current working directory:
 
-```text
+```console
 docker run --rm \
   -e DRONE_COMMIT_SHA=8f51ad7884c5eb69c11d260a31da7a745e6b78e2 \
   -e DRONE_COMMIT_BRANCH=master \
@@ -39,10 +45,10 @@ docker run --rm \
   -e PLUGIN_STATE=successful \
   -w /drone/src \
   -v $(pwd):/drone/src \
-  plugins/jira
+  noenv/jira
 ```
 
-## Plugin Settings
+#### Plugin Settings
 - `LOG_LEVEL` debug/info Level defines the plugin log level. Set this to debug to see the response from jira
 - `CLOUD_ID` Atlassian Cloud ID (required)
 - `CLIENT_ID` Atlassian Oauth2 Client ID (required)
@@ -54,3 +60,6 @@ docker run --rm \
 - `LINK` Link to deployment (optional)
 - `STATE` State of the deployment (optional)
 	
+#### Source
+
+https://github.com/noenv/drone-jira
