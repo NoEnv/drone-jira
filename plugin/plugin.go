@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -27,6 +28,10 @@ const (
 // Args provides plugin execution arguments.
 type Args struct {
 	Pipeline
+
+	UploadDeployment bool `envconfig:"PLUGIN_UPLOAD_DEPLOYMENT"`
+
+	UploadDevInfo bool `envconfig:"PLUGIN_UPLOAD_DEV_INFO"`
 
 	// Level defines the plugin log level.
 	Level string `envconfig:"PLUGIN_LOG_LEVEL"`
@@ -97,6 +102,12 @@ func Exec(ctx context.Context, args Args) error {
 	logger = logger.WithField("issue", issue)
 	logger.Debugln("successfully extraced issue number")
 
+	// Default to Upload Deployment when neither arg set
+	if !args.UploadDeployment && !args.UploadDevInfo {
+		args.UploadDeployment = true
+	}
+
+	now := time.Now()
 	deploymentPayload := DeploymentPayload{
 		Deployments: []*Deployment{
 			{
@@ -111,7 +122,7 @@ func Exec(ctx context.Context, args Args) error {
 				Displayname: strconv.Itoa(args.Build.Number),
 				URL:         deeplink,
 				Description: args.Commit.Message,
-				Lastupdated: time.Now(),
+				Lastupdated: now,
 				State:       state,
 				Pipeline: JiraPipeline{
 					ID:          args.Name,
@@ -133,11 +144,42 @@ func Exec(ctx context.Context, args Args) error {
 				Description:          args.Commit.Message,
 				DisplayName:          args.Name,
 				URL:                  deeplink,
-				LastUpdated:          time.Now(),
+				LastUpdated:          now,
 				PipelineID:           args.Name,
 				IssueKeys:            []string{issue},
 				State:                state,
 				UpdateSequenceNumber: args.Build.Number,
+			},
+		},
+	}
+	devInfoPayload := DevelopmentInformationPayload{
+		Repositories: []*Repository{
+			{
+				Name:             args.Repo.Slug,
+				Url:              args.Repo.Link,
+				Id:               strings.ReplaceAll(args.Repo.Slug, "/", "."),
+				UpdateSequenceId: int(now.Unix()),
+				PullRequests: []*PullRequest{
+					{
+						Id:               fmt.Sprint(args.PullRequest.Number),
+						IssueKeys:        []string{issue},
+						UpdateSequenceId: int(now.Unix()),
+						Status:           "OPEN",
+						Title:            args.PullRequest.Title,
+						Author: Author{
+							Name:     args.Commit.Author.Name,
+							Email:    args.Commit.Author.Email,
+							Username: args.Commit.Author.Username,
+							Avatar:   args.Commit.Author.Avatar,
+						},
+						CommentCount:      0,
+						SourceBranch:      args.Commit.Source,
+						DestinationBranch: args.Commit.Target,
+						LastUpdate:        int(now.Unix()),
+						Url:               fmt.Sprintf("%s/pulls/%d", args.Repo.Link, args.PullRequest.Number),
+						DisplayId:         fmt.Sprint(args.PullRequest.Number),
+					},
+				},
 			},
 		},
 	}
@@ -161,12 +203,25 @@ func Exec(ctx context.Context, args Args) error {
 			logger.Debugln("cannot create token, from client id and secret")
 			return err
 		}
-		logger.Infoln("creating deployment")
-		deploymentErr := createDeployment(deploymentPayload, cloudID, args.Level, oauthToken)
-		if deploymentErr != nil {
-			logger.WithError(deploymentErr).
-				Errorln("cannot create deployment")
-			return deploymentErr
+
+		if args.UploadDeployment {
+			logger.Infoln("creating deployment")
+			deploymentErr := createDeployment(deploymentPayload, cloudID, args.Level, oauthToken)
+			if deploymentErr != nil {
+				logger.WithError(deploymentErr).
+					Errorln("cannot create deployment")
+				return deploymentErr
+			}
+		}
+
+		if args.UploadDevInfo {
+			logger.Infoln("storing development information")
+			devInfoErr := storeDevelopmentInformation(devInfoPayload, cloudID, args.Level, oauthToken)
+			if devInfoErr != nil {
+				logger.WithError(devInfoErr).
+					Errorln("cannot store development information")
+				return devInfoErr
+			}
 		}
 	} else {
 		// set default connect hostname
@@ -346,6 +401,36 @@ func createConnectBuild(payload BuildPayload, cloudID, debug, jwtToken string) e
 	}
 	req.Header.Set("From", "noreply@localhost")
 	req.Header.Set("Authorization", "Bearer "+jwtToken)
+	req.Header.Set("Content-Type", "application/json")
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+	switch debug {
+	case "debug", "trace", "DEBUG", "TRACE":
+		out, _ := httputil.DumpResponse(res, true)
+		outString := string(out)
+		logrus.WithField("status", res.Status).WithField("response", outString).Info("request complete")
+	}
+	if res.StatusCode > 299 {
+		return fmt.Errorf("Error code %d", res.StatusCode)
+	}
+	return nil
+}
+
+func storeDevelopmentInformation(payload DevelopmentInformationPayload, cloudID, debug, oauthToken string) error {
+	endpoint := fmt.Sprintf("https://api.atlassian.com/jira/devinfo/0.1/cloud/%s/bulk", cloudID)
+	buf := new(bytes.Buffer)
+	if err := json.NewEncoder(buf).Encode(payload); err != nil {
+		return err
+	}
+	req, err := http.NewRequest("POST", endpoint, buf)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("From", "noreply@localhost")
+	req.Header.Set("Authorization", "Bearer "+oauthToken)
 	req.Header.Set("Content-Type", "application/json")
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {

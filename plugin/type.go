@@ -13,6 +13,9 @@ type (
 	DeploymentPayload struct {
 		Deployments []*Deployment `json:"deployments"`
 	}
+	DevelopmentInformationPayload struct {
+		Repositories []*Repository `json:"repositories"`
+	}
 
 	// build provides the build details.
 	Build struct {
@@ -77,6 +80,40 @@ type (
 		ID          string `json:"id"`
 		Displayname string `json:"displayName"`
 		URL         string `json:"url"`
+	}
+
+	// Repository provides commit, branches, and pull request details
+	Repository struct {
+		Name             string `json:"name"`
+		Url              string `json:"url"`
+		Id               string `json:"id"`
+		UpdateSequenceId int    `json:"updateSequenceId"`
+
+		PullRequests []*PullRequest `json:"pullRequests"`
+	}
+
+	PullRequest struct {
+		Id               string   `json:"id"`
+		IssueKeys        []string `json:"issueKeys"`
+		UpdateSequenceId int      `json:"updateSequenceId"`
+		// OPEN, MERGED, DECLINED, UNKNOWN
+		Status            string `json:"status"`
+		Title             string `json:"title"`
+		Author            Author `json:"author"`
+		CommentCount      int    `json:"commentCount"`
+		SourceBranch      string `json:"sourceBranch"`
+		DestinationBranch string `json:"destinationBranch"`
+		LastUpdate        int    `json:"lastUpdate"`
+		Url               string `json:"url"`
+		DisplayId         string `json:"displayId"`
+	}
+
+	Author struct {
+		Name     string `json:"name"`
+		Email    string `json:"email"`
+		Username string `json:"username"`
+		Url      string `json:"url"`
+		Avatar   string `json:"avatar"`
 	}
 
 	// Tenant provides the jira instance tenant details.

@@ -36,6 +36,7 @@ docker run --rm \
   -e DRONE_BUILD_NUMBER=43 \
   -e DRONE_BUILD_STATUS=success \
   -e DRONE_BUILD_LINK=https://cloud.drone.io \
+  -e PLUGIN_UPLOAD_DEPLOYMENT=1 \
   -e PLUGIN_CLOUD_ID=${JIRA_CLOUD_ID} \
   -e PLUGIN_CLIENT_ID=${JIRA_CLIENT_ID} \
   -e PLUGIN_CLIENT_SECRET=${JIRA_CLIENT_SECRET} \
@@ -49,6 +50,8 @@ docker run --rm \
 ```
 
 #### Plugin Settings
+- `UPLOAD_DEPLOYMENT` Enable uploading deployment data
+- `UPLOAD_DEV_INFO` Enable uploading pull request info
 - `LOG_LEVEL` debug/info Level defines the plugin log level. Set this to debug to see the response from jira
 - `CLOUD_ID` Atlassian Cloud ID (required)
 - `CLIENT_ID` Atlassian Oauth2 Client ID (required)
