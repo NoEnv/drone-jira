@@ -339,6 +339,12 @@ func createDeployment(payload DeploymentPayload, cloudID, debug, oauthToken stri
 	if err != nil {
 		return err
 	}
+	switch debug {
+	case "debug", "trace", "DEBUG", "TRACE":
+		out, _ := httputil.DumpRequest(req, true)
+		outString := string(out)
+		logrus.WithField("request", outString).Info("request prepared")
+	}
 	req.Header.Set("From", "noreply@localhost")
 	req.Header.Set("Authorization", "Bearer "+oauthToken)
 	req.Header.Set("Content-Type", "application/json")
@@ -369,6 +375,12 @@ func createConnectDeployment(payload DeploymentPayload, cloudID, debug, jwtToken
 	req, err := http.NewRequest("POST", endpoint, buf)
 	if err != nil {
 		return err
+	}
+	switch debug {
+	case "debug", "trace", "DEBUG", "TRACE":
+		out, _ := httputil.DumpRequest(req, true)
+		outString := string(out)
+		logrus.WithField("request", outString).Info("request prepared")
 	}
 	req.Header.Set("From", "noreply@localhost")
 	req.Header.Set("Authorization", "Bearer "+jwtToken)
@@ -401,6 +413,12 @@ func createConnectBuild(payload BuildPayload, cloudID, debug, jwtToken string) e
 	if err != nil {
 		return err
 	}
+	switch debug {
+	case "debug", "trace", "DEBUG", "TRACE":
+		out, _ := httputil.DumpRequest(req, true)
+		outString := string(out)
+		logrus.WithField("request", outString).Info("request prepared")
+	}
 	req.Header.Set("From", "noreply@localhost")
 	req.Header.Set("Authorization", "Bearer "+jwtToken)
 	req.Header.Set("Content-Type", "application/json")
@@ -430,6 +448,12 @@ func storeDevelopmentInformation(payload DevelopmentInformationPayload, cloudID,
 	req, err := http.NewRequest("POST", endpoint, buf)
 	if err != nil {
 		return err
+	}
+	switch debug {
+	case "debug", "trace", "DEBUG", "TRACE":
+		out, _ := httputil.DumpRequest(req, true)
+		outString := string(out)
+		logrus.WithField("request", outString).Info("request prepared")
 	}
 	req.Header.Set("From", "noreply@localhost")
 	req.Header.Set("Authorization", "Bearer "+oauthToken)
