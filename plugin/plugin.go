@@ -92,7 +92,9 @@ func Exec(ctx context.Context, args Args) error {
 		WithField("pipeline", args.Name).
 		WithField("environment", environ).
 		WithField("state", state).
-		WithField("version", version)
+		WithField("version", version).
+		WithField("upload_deployment", args.UploadDeployment).
+		WithField("upload_dev_info", args.UploadDevInfo)
 
 	if issue == "" {
 		logger.Debugln("cannot find issue number")
