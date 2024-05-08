@@ -177,7 +177,7 @@ func Exec(ctx context.Context, args Args) error {
 						CommentCount:      0,
 						SourceBranch:      args.Commit.Source,
 						DestinationBranch: args.Commit.Target,
-						LastUpdate:        int(now.Unix()),
+						LastUpdate:        now.Format(time.RFC3339),
 						Url:               fmt.Sprintf("%s/pulls/%d", args.Repo.Link, args.PullRequest.Number),
 						DisplayId:         fmt.Sprint(args.PullRequest.Number),
 					},

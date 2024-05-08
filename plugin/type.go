@@ -103,7 +103,7 @@ type (
 		CommentCount      int    `json:"commentCount"`
 		SourceBranch      string `json:"sourceBranch"`
 		DestinationBranch string `json:"destinationBranch"`
-		LastUpdate        int    `json:"lastUpdate"`
+		LastUpdate        string `json:"lastUpdate"` // ISO8601 / RFC3339 fromat
 		Url               string `json:"url"`
 		DisplayId         string `json:"displayId"`
 	}
