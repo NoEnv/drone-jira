@@ -1,4 +1,4 @@
-FROM golang:1.24 as builder
+FROM golang:1.25 as builder
 
 WORKDIR /go/src/github.com/noenv/drone-jira
 ADD . /go/src/github.com/noenv/drone-jira
